@@ -13,6 +13,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Since using API routes, we don't need to add the EnsureFrontendRequestsAreStateful middleware to the API middleware group. 
+        // This middleware is only necessary for stateful authentication in web routes.
+
+        // $middleware->api(prepend: [
+        //     \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        // ]);
+
+        $middleware->alias([
+            'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
+        ]);
+
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {

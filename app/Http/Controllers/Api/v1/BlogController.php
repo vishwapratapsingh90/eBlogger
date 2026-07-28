@@ -24,6 +24,12 @@ class BlogController extends Controller
     public function store(Request $request)
     {
         //
+        $data = $request->validate([
+            'slug' => 'required|string|unique:blogs,slug',
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'author_id' => 'required|exists:users,id',
+        ]);
     }
 
     /**
