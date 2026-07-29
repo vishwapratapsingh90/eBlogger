@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreBlogRequest;
+use App\Http\Requests\UpdateBlogRequest;
 use App\Http\Resources\BlogResource;
 use App\Models\Blog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class BlogController extends Controller
 {
@@ -15,7 +18,7 @@ class BlogController extends Controller
      */
     public function index(): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
     {
-        return BlogResource::collection(Blog::with('author')->get());
+        return BlogResource::collection(Blog::with('author')->paginate());
         
         //
         // return response()->json([
@@ -26,15 +29,19 @@ class BlogController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): BlogResource
+    public function store(StoreBlogRequest $request): BlogResource
     {
         //
+        /*
         $data = $request->validate([
             'slug' => 'required|string|unique:blogs,slug',
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'author_id' => 'required|integer|exists:users,id',
         ]);
+        */
+        $data = $request->validated();
+        $data['author_id'] = $request->user()->id;
         $blog = Blog::create($data);
 
         return new BlogResource($blog);
@@ -56,15 +63,19 @@ class BlogController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Blog $blog): BlogResource
+    public function update(UpdateBlogRequest $request, Blog $blog): BlogResource
     {
         //
+        abort_if($blog->author_id !== Auth::id(), 403, 'You are not authorized to update this blog.');
+        /*
         $data = $request->validate([
             'slug' => 'sometimes|required|string|unique:blogs,slug,' . $blog->id,
             'title' => 'sometimes|required|string|max:255',
             'content' => 'sometimes|required|string',
             'author_id' => 'sometimes|required|integer|exists:users,id',
         ]);
+        */
+        $data = $request->validated();
         $blog->update($data);
         return new BlogResource($blog::with('author')->first());
     }
@@ -75,9 +86,16 @@ class BlogController extends Controller
     public function destroy(Blog $blog): JsonResponse
     {
         //
+        abort_if($blog->author_id !== Auth::id(), 403, 'You are not authorized to delete this blog.');
         $blog->delete();
         return response()->json([
             'message' => 'Blog deleted successfully',
         ]);
+    }
+
+    public function myBlogs(Request $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+    {
+        $user = $request->user();
+        return BlogResource::collection($user->blogs()->paginate());
     }
 }

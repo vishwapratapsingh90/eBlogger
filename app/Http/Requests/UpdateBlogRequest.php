@@ -12,7 +12,7 @@ class UpdateBlogRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,6 +24,10 @@ class UpdateBlogRequest extends FormRequest
     {
         return [
             //
+            'slug' => 'sometimes|required|string|unique:blogs,slug,' . $this->route('blog')->id,
+            'title' => 'sometimes|required|string|max:255',
+            'content' => 'sometimes|required|string',
+            'author_id' => 'sometimes|required|integer|exists:users,id',
         ];
     }
 }

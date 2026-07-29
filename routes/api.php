@@ -19,6 +19,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::prefix('v1')->group(function () {
         Route::get('/blogs', [BlogController::class, 'index']);
+        Route::get('/blogs/my-blogs', [BlogController::class, 'myBlogs']);
         Route::post('/blogs', [BlogController::class, 'store']);
         Route::get('/blogs/{blog}', [BlogController::class, 'show']);
         Route::put('/blogs/{blog}', [BlogController::class, 'update']);

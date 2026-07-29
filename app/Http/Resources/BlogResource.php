@@ -25,6 +25,7 @@ class BlogResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             // 'author' => $this->author,
+            /*
             'author' => $this->whenLoaded('author', function () {
                 return [
                     'id' => $this->author->id,
@@ -32,6 +33,8 @@ class BlogResource extends JsonResource
                     'email' => $this->author->email,
                 ];
             }),
+            */
+            'author' => new UserResource($this->whenLoaded('author')),
         ];
     }
 }
