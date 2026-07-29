@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\v1\BlogController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,11 +18,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     Route::prefix('v1')->group(function () {
-        Route::get('/blogs', [\App\Http\Controllers\Api\v1\BlogController::class, 'index']);
-        Route::post('/blogs', [\App\Http\Controllers\Api\v1\BlogController::class, 'store']);
-        Route::get('/blogs/{id}', [\App\Http\Controllers\Api\v1\BlogController::class, 'show']);
-        Route::put('/blogs/{id}', [\App\Http\Controllers\Api\v1\BlogController::class, 'update']);
-        Route::delete('/blogs/{id}', [\App\Http\Controllers\Api\v1\BlogController::class, 'destroy']);
+        Route::get('/blogs', [BlogController::class, 'index']);
+        Route::post('/blogs', [BlogController::class, 'store']);
+        Route::get('/blogs/{blog}', [BlogController::class, 'show']);
+        Route::put('/blogs/{blog}', [BlogController::class, 'update']);
+        Route::delete('/blogs/{blog}', [BlogController::class, 'destroy']);
     });
 });
 
