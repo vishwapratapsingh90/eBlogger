@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -22,7 +23,11 @@ class AuthenticatedSessionController extends Controller
         // $request->session()->regenerate();
 
         $user = $request->user();
-        $token = $user->createToken('user-token')->plainTextToken;
+        $token = $user->createToken(
+            'user-token', 
+            ['*'], 
+            Carbon::now()->addHours(8)
+        )->plainTextToken;
 
         // return response()->noContent();
         return response()->json([
@@ -47,7 +52,7 @@ class AuthenticatedSessionController extends Controller
 
         $user = $request->user();
 
-        $user->currentAccessToken->delete();
+        $user->currentAccessToken()?->delete();
 
         return response()->json([
             'message' => 'User logged out successfully',
