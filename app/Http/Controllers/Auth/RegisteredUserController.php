@@ -15,6 +15,7 @@ use Illuminate\Validation\ValidationException;
 class RegisteredUserController extends Controller
 {
     /**
+     * @unauthenticated
      * Handle an incoming registration request.
      *
      * @throws ValidationException

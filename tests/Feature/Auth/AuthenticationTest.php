@@ -5,19 +5,18 @@ use App\Models\User;
 test('users can authenticate using the login screen', function () {
     $user = User::factory()->create();
 
-    $response = $this->post('/login', [
+    $response = $this->post('/api/login', [
         'email' => $user->email,
         'password' => 'password',
     ]);
 
-    $this->assertAuthenticated();
-    $response->assertNoContent();
+    $response->assertStatus(200);
 });
 
 test('users can not authenticate with invalid password', function () {
     $user = User::factory()->create();
 
-    $this->post('/login', [
+    $this->post('/api/login', [
         'email' => $user->email,
         'password' => 'wrong-password',
     ]);
@@ -26,10 +25,21 @@ test('users can not authenticate with invalid password', function () {
 });
 
 test('users can logout', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create([
+        'email' => 'clark.kent@smallville.com',
+        'password' => bcrypt('iamsuperman'),
+    ]);
 
-    $response = $this->actingAs($user)->post('/logout');
+    $loginResponse = $this->post('/api/login', [
+        'email' => 'clark.kent@smallville.com',
+        'password' => 'iamsuperman',
+    ]);
 
-    $this->assertGuest();
-    $response->assertNoContent();
+    $response = $this->withHeader('Authorization', 'Bearer ' . $loginResponse->json('token'))
+        ->post('/api/logout');
+
+    $response->assertStatus(200);
+    $response->assertJsonStructure([
+        'message',
+    ]);
 });
