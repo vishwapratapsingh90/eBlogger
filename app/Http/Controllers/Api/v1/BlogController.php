@@ -16,9 +16,9 @@ class BlogController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+    public function index(Request $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
     {
-        return BlogResource::collection(Blog::with('author')->paginate());
+        return BlogResource::collection(Blog::with('author')->paginate($request->input('per_page', 15)));
         
         //
         // return response()->json([
@@ -87,7 +87,8 @@ class BlogController extends Controller
     {
         //
         abort_if($blog->author_id !== Auth::id(), 403, 'You are not authorized to delete this blog.');
-        $blog->delete();
+        // use destroy with id to avoid argument mismatch if delete is overridden
+        Blog::destroy($blog->id);
         return response()->json([
             'message' => 'Blog deleted successfully',
         ]);
@@ -96,6 +97,6 @@ class BlogController extends Controller
     public function myBlogs(Request $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
     {
         $user = $request->user();
-        return BlogResource::collection($user->blogs()->paginate());
+        return BlogResource::collection($user->blogs()->paginate($request->input('per_page', 15)));
     }
 }

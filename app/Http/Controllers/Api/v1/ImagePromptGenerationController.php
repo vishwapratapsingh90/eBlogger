@@ -18,9 +18,25 @@ class ImagePromptGenerationController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $imageGenerations = $user->imageGenerations()->latest()->paginate(10);
-        return ImagePromptGenerationResource::collection($imageGenerations);
+        $allowedSortColumns = ['id', 'generated_prompt', 'original_filename', 'file_size', 'mime_type', 'created_at', 'updated_at'];
+        $search = $request->input('search');
+        $sortBy = $request->input('sort_by');
+        $sortOrder = strtolower((string) $request->input('sort_order', 'asc'));
 
+        if (! in_array($sortOrder, ['asc', 'desc'], true)) {
+            $sortOrder = 'asc';
+        }
+
+        $imageGenerations = $user->imageGenerations()
+            ->when($request->filled('search'), function ($query) use ($search) {
+                $query->where('generated_prompt', 'like', "%{$search}%");
+            })
+            ->when($request->filled('sort_by') && in_array($sortBy, $allowedSortColumns, true), function ($query) use ($sortBy, $sortOrder) {
+                $query->orderBy($sortBy, $sortOrder);
+            })
+            ->paginate($request->input('per_page', 15));
+
+        return ImagePromptGenerationResource::collection($imageGenerations);
     }
 
     public function store(GeneratePromptRequest $request)
