@@ -57,7 +57,9 @@ class BlogController extends Controller
      */
     public function show(Blog $blog): BlogResource
     {
-        return new BlogResource($blog::with('author')->first());
+        // ensure the bound model has its relations loaded
+        $blog->load('author');
+        return new BlogResource($blog);
     }
 
     /**
@@ -77,7 +79,9 @@ class BlogController extends Controller
         */
         $data = $request->validated();
         $blog->update($data);
-        return new BlogResource($blog::with('author')->first());
+        // reload relationships for the returned resource
+        $blog->load('author');
+        return new BlogResource($blog);
     }
 
     /**
