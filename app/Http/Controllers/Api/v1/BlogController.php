@@ -15,6 +15,9 @@ class BlogController extends Controller
 {
     /**
      * Display a listing of the resource.
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index(Request $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
     {
@@ -28,6 +31,9 @@ class BlogController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     * 
+     * @param StoreBlogRequest $request
+     * @return BlogResource
      */
     public function store(StoreBlogRequest $request): BlogResource
     {
@@ -54,6 +60,9 @@ class BlogController extends Controller
 
     /**
      * Display the specified resource.
+     * 
+     * @param Blog $blog
+     * @return BlogResource
      */
     public function show(Blog $blog): BlogResource
     {
@@ -64,6 +73,10 @@ class BlogController extends Controller
 
     /**
      * Update the specified resource in storage.
+     * 
+     * @param UpdateBlogRequest $request
+     * @param Blog $blog
+     * @return BlogResource
      */
     public function update(UpdateBlogRequest $request, Blog $blog): BlogResource
     {
@@ -79,13 +92,16 @@ class BlogController extends Controller
         */
         $data = $request->validated();
         $blog->update($data);
-        // reload relationships for the returned resource
+        // Eager load relationships for the returned resource
         $blog->load('author');
         return new BlogResource($blog);
     }
 
     /**
      * Remove the specified resource from storage.
+     * 
+     * @param Blog $blog
+     * @return JsonResponse
      */
     public function destroy(Blog $blog): JsonResponse
     {
@@ -98,6 +114,12 @@ class BlogController extends Controller
         ]);
     }
 
+    /**
+     * Get the blogs of the authenticated user.
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
     public function myBlogs(Request $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
     {
         $user = $request->user();
