@@ -67,12 +67,12 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.3"
+          php-version: "8.5"
           extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, pdo_mysql, redis, intl, gd
           coverage: none
 
       - name: Install Composer dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress --no-suggest
+        run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Prepare Laravel app
         run: |
