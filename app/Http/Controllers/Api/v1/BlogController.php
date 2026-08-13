@@ -6,10 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBlogRequest;
 use App\Http\Requests\UpdateBlogRequest;
 use App\Http\Resources\BlogResource;
+use App\Jobs\BulkBlogsCreation;
 use App\Models\Blog;
+use App\Models\BlogsImportLogs;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\File;
 
 class BlogController extends Controller
 {
@@ -22,7 +26,7 @@ class BlogController extends Controller
     public function index(Request $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
     {
         return BlogResource::collection(Blog::with('author')->paginate($request->input('per_page', 15)));
-        
+
         //
         // return response()->json([
         //     'message' => 'List of blogs',
@@ -124,5 +128,59 @@ class BlogController extends Controller
     {
         $user = $request->user();
         return BlogResource::collection($user->blogs()->paginate($request->input('per_page', 15)));
+    }
+
+    public function uploadBlogsCsvFile(Request $request)
+    {
+        $userId = Auth::id();
+
+        $request->validate([
+            'blog_file' => [
+                'required',
+                'file',
+                File::types(['csv'])->max('10mb'),
+            ],
+        ]);
+
+
+        $file = $request->file('blog_file');
+
+        $originalFilename = $file->getClientOriginalName();
+        $sanitizedFilename = preg_replace('/[^a-zA-Z0-9\s.-_]/', '', pathinfo($originalFilename, PATHINFO_FILENAME));
+        $extension = $file->getClientOriginalExtension();
+        $fileName = $sanitizedFilename . '_' . Str::random(32) . '.' . $extension;
+
+        $filePath = $file->storeAs('uploads/imports/blogs', $fileName, 'public');
+
+        $import = BlogsImportLogs::create([
+            'original_file_name' => $originalFilename,
+            'processed_file_name' => $fileName,
+            'file_path' => $filePath,
+            'total_records' => 0,
+            'total_processed' => 0,
+            'total_failed' => 0,
+            'status' => '0',
+            'uploaded_by' => $userId,
+        ]);
+
+        $importId = $import->id;
+
+        try {
+            BulkBlogsCreation::dispatch($importId, $originalFilename, $filePath, $userId)
+                ->onQueue('blogs_import');
+
+            return response()->json([
+                'message' => 'Job dispatched successfully',
+                'queue' => 'blogs_import',
+                'status' => 'queued',
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Failed to dispatch job',
+                'queue' => 'blogs_import',
+                'status' => 'failed',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

@@ -42,5 +42,8 @@ php artisan telescope:prune --hours=24
 php artisan config:clear
 php artisan cache:clear
 
+# Start horizon in the background
+php artisan horizon &
+
 # Start the built-in Laravel development server so the container keeps running.
 exec /usr/bin/php -d variables_order=EGPCS /var/www/html/artisan serve --host=0.0.0.0 --port=80

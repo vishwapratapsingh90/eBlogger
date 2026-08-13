@@ -47,6 +47,7 @@ services:
             IGNITION_LOCAL_SITES_PATH: "${PWD}"
         volumes:
             - ".:/var/www/html"
+        command: ["sh", "-c", "php artisan horizon"]
         networks:
             - sail
         depends_on:

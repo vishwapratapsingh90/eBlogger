@@ -29,6 +29,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         Route::get('/blogs', [BlogController::class, 'index'])->name('blogs.index');
         Route::get('/blogs/my-blogs', [BlogController::class, 'myBlogs'])->name('blogs.my');
         Route::post('/blogs', [BlogController::class, 'store'])->name('blogs.store');
+        Route::post('/blogs/bulk-upload', [BlogController::class,'uploadBlogsCsvFile'])->name('blogs.bulk-upload');
 
         // Example: resolve blog by slug using explicit key binding in the route
         // This will use the Blog model's `getRouteKeyName()` if defined, or the {blog:slug} syntax
