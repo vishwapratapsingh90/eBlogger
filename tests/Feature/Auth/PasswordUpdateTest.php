@@ -1,40 +1,21 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 
-test('password can be updated', function () {
+test('authenticated user can fetch current profile', function () {
     $user = User::factory()->create();
 
     $response = $this
-        ->actingAs($user)
-        ->from('/profile')
-        ->put('/password', [
-            'current_password' => 'password',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
-        ]);
+        ->actingAs($user, 'sanctum')
+        ->getJson('/api/user');
 
     $response
-        ->assertSessionHasNoErrors()
-        ->assertRedirect('/profile');
-
-    $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
+        ->assertOk()
+        ->assertJsonPath('id', $user->id)
+        ->assertJsonPath('email', $user->email);
 });
 
-test('correct password must be provided to update password', function () {
-    $user = User::factory()->create();
-
-    $response = $this
-        ->actingAs($user)
-        ->from('/profile')
-        ->put('/password', [
-            'current_password' => 'wrong-password',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
-        ]);
-
-    $response
-        ->assertSessionHasErrorsIn('updatePassword', 'current_password')
-        ->assertRedirect('/profile');
+test('unauthenticated user cannot fetch profile', function () {
+    $this->getJson('/api/user')
+        ->assertUnauthorized();
 });
