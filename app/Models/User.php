@@ -41,4 +41,8 @@ class User extends Authenticatable
     {
         return $this->hasMany(ImageGeneration::class);
     }
+
+    public function uploadedBlogs(): HasMany {
+        return $this->hasMany(BlogsImportLogs::class, 'uploaded_by', 'id');
+    }
 }
